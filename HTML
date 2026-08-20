@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#241a18">
+  <title>Catur Jawa</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="game-container">
+
+    <header class="game-header">
+      <p class="eyebrow">PERMAINAN TRADISIONAL JAWA</p>
+      <h1>Catur <span>Jawa</span></h1>
+      <p class="description">
+        Susun tiga bidakmu menjadi satu garis.
+      </p>
+    </header>
+
+    <section class="game-panel">
+
+      <div class="top-info">
+
+        <div class="player player-one active" id="playerOne">
+          <span class="player-piece red-piece"></span>
+          <div>
+            <small>PEMAIN 1</small>
+            <strong>Merah</strong>
+          </div>
+        </div>
+
+        <div class="turn-box">
+          <small>GILIRAN</small>
+          <strong id="turnText">Pemain 1</strong>
+        </div>
+
+        <div class="player player-two" id="playerTwo">
+          <span class="player-piece blue-piece"></span>
+          <div>
+            <small>PEMAIN 2</small>
+            <strong>Biru</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="status" id="status">
+        Pilih salah satu bidak merah untuk bergerak.
+      </div>
+
+      <div class="board-area">
+
+        <div class="board" id="board">
+
+          <div class="line horizontal line-h1"></div>
+          <div class="line horizontal line-h2"></div>
+          <div class="line vertical line-v1"></div>
+          <div class="line vertical line-v2"></div>
+
+          <div class="line diagonal line-d1"></div>
+          <div class="line diagonal line-d2"></div>
+          <div class="line diagonal line-d3"></div>
+          <div class="line diagonal line-d4"></div>
+
+          <button class="point" data-index="0"></button>
+          <button class="point" data-index="1"></button>
+          <button class="point" data-index="2"></button>
+
+          <button class="point" data-index="3"></button>
+          <button class="point" data-index="4"></button>
+          <button class="point" data-index="5"></button>
+
+          <button class="point" data-index="6"></button>
+          <button class="point" data-index="7"></button>
+          <button class="point" data-index="8"></button>
+
+        </div>
+
+      </div>
+
+      <div class="score-board">
+
+        <div class="score-card">
+          <span class="score-dot red"></span>
+          <small>MERAH</small>
+          <strong id="redScore">0</strong>
+        </div>
+
+        <div class="score-card draw">
+          <small>RONDE</small>
+          <strong id="roundNumber">1</strong>
+        </div>
+
+        <div class="score-card">
+          <span class="score-dot blue"></span>
+          <small>BIRU</small>
+          <strong id="blueScore">0</strong>
+        </div>
+
+      </div>
+
+      <div class="controls">
+        <button class="reset-button" id="resetButton">
+          ↻ Mulai Ulang
+        </button>
+      </div>
+
+    </section>
+
+    <footer>
+      <span>✦</span>
+      Catur Jawa
+      <span>✦</span>
+    </footer>
+
+  </main>
+
+  <div class="winner-modal" id="winnerModal">
+
+    <div class="modal-content">
+
+      <div class="flower">✿</div>
+
+      <p>PEMENANG</p>
+
+      <h2 id="winnerText">Pemain 1</h2>
+
+      <div class="winner-piece" id="winnerPiece"></div>
+
+      <button id="nextRound">
+        Main Lagi
+      </button>
+
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
