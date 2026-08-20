@@ -1,30 +1,38 @@
 const points = document.querySelectorAll(".point");
 
-const statusElement = document.getElementById("status");
+const message = document.getElementById("message");
 const turnText = document.getElementById("turnText");
 
-const playerOne = document.getElementById("playerOne");
-const playerTwo = document.getElementById("playerTwo");
+const redPlayer = document.getElementById("redPlayer");
+const bluePlayer = document.getElementById("bluePlayer");
 
 const redScoreElement = document.getElementById("redScore");
 const blueScoreElement = document.getElementById("blueScore");
-const roundNumberElement = document.getElementById("roundNumber");
 
-const resetButton = document.getElementById("resetButton");
+const roundElement = document.getElementById("round");
 
-const winnerModal = document.getElementById("winnerModal");
-const winnerText = document.getElementById("winnerText");
+const resetButton = document.getElementById("reset");
+
+const modal = document.getElementById("modal");
+const winnerText = document.getElementById("winner");
 const winnerPiece = document.getElementById("winnerPiece");
-const nextRound = document.getElementById("nextRound");
+
+const playAgain = document.getElementById("playAgain");
 
 
 /*
-  0  1  2
-  3  4  5
-  6  7  8
+  POSISI PAPAN
+
+  0 ─── 1 ─── 2
+  │  ╲  │  ╱  │
+  3 ─── 4 ─── 5
+  │  ╱  │  ╲  │
+  6 ─── 7 ─── 8
 */
 
-const WINNING_LINES = [
+
+const winningLines = [
+
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],
@@ -35,30 +43,35 @@ const WINNING_LINES = [
 
   [0, 4, 8],
   [2, 4, 6]
+
 ];
 
 
-/*
-  Setiap titik terhubung dengan
-  titik yang bersebelahan.
-*/
+const connectedPositions = {
 
-const MOVES = {
   0: [1, 3, 4],
-  1: [0, 2, 3, 4, 5],
+
+  1: [0, 2, 4],
+
   2: [1, 4, 5],
 
-  3: [0, 1, 4, 6, 7],
+  3: [0, 4, 6],
+
   4: [0, 1, 2, 3, 5, 6, 7, 8],
-  5: [1, 2, 4, 7, 8],
+
+  5: [2, 4, 8],
 
   6: [3, 4, 7],
-  7: [3, 4, 5, 6, 8],
+
+  7: [4, 6, 8],
+
   8: [4, 5, 7]
+
 };
 
 
 let board = [
+
   "red",
   "red",
   "red",
@@ -70,47 +83,51 @@ let board = [
   "blue",
   "blue",
   "blue"
+
 ];
 
 
 let currentPlayer = "red";
 
-let selectedPiece = null;
+let selectedPosition = null;
 
-let gameOver = false;
+let gameFinished = false;
 
 let redScore = 0;
+
 let blueScore = 0;
 
 let round = 1;
 
 
 /*
-  Posisi horizontal awal tidak dianggap
-  sebagai kemenangan langsung.
+  POSISI AWAL
+
+  Baris awal tidak dihitung
+  sebagai kemenangan.
 */
 
-const INITIAL_LINES = {
+const startingLines = {
+
   red: [0, 1, 2],
+
   blue: [6, 7, 8]
+
 };
 
 
 /*
-  EVENT POINT
+  CLICK POINT
 */
 
 points.forEach((point) => {
 
   point.addEventListener("click", () => {
 
-    if (gameOver) {
-      return;
-    }
+    const position =
+      Number(point.dataset.position);
 
-    const index = Number(point.dataset.index);
-
-    handlePointClick(index);
+    handleClick(position);
 
   });
 
@@ -118,106 +135,122 @@ points.forEach((point) => {
 
 
 /*
-  KLIK TITIK
+  HANDLE CLICK
 */
 
-function handlePointClick(index) {
+function handleClick(position) {
+
+  if (gameFinished) {
+    return;
+  }
+
 
   /*
-    Kalau belum memilih bidak,
-    cari bidak milik pemain.
+    BELUM MEMILIH BIDAK
   */
 
-  if (selectedPiece === null) {
+  if (selectedPosition === null) {
 
-    if (board[index] !== currentPlayer) {
+    if (board[position] !== currentPlayer) {
 
-      statusElement.textContent =
-        "Pilih bidak milikmu terlebih dahulu.";
+      message.textContent =
+        "Pilih bidak milikmu.";
 
       return;
+
     }
 
-    selectPiece(index);
+
+    selectPiece(position);
 
     return;
   }
 
 
   /*
-    Klik bidak lain milik pemain.
+    MEMILIH BIDAK LAIN
   */
 
-  if (board[index] === currentPlayer) {
+  if (board[position] === currentPlayer) {
 
-    selectPiece(index);
+    selectPiece(position);
 
     return;
+
   }
 
 
   /*
-    Kalau titik tujuan kosong,
-    cek apakah bisa ditempati.
+    PINDAH KE TITIK KOSONG
   */
 
-  if (board[index] === null) {
+  if (board[position] === null) {
 
-    if (MOVES[selectedPiece].includes(index)) {
+    const canMove =
+      connectedPositions[selectedPosition]
+        .includes(position);
 
-      movePiece(
-        selectedPiece,
-        index
-      );
 
-    } else {
+    if (!canMove) {
 
-      statusElement.textContent =
-        "Bidak hanya dapat bergerak ke titik yang terhubung.";
+      message.textContent =
+        "Bidak tidak bisa bergerak ke titik tersebut.";
+
+      return;
 
     }
+
+
+    movePiece(
+      selectedPosition,
+      position
+    );
 
     return;
   }
 
 
-  statusElement.textContent =
+  message.textContent =
     "Titik tersebut sudah ditempati.";
+
 }
 
 
 /*
-  PILIH BIDAK
+  SELECT PIECE
 */
 
-function selectPiece(index) {
+function selectPiece(position) {
 
-  clearHighlights();
+  clearSelection();
 
-  selectedPiece = index;
+  selectedPosition = position;
 
-  points[index].classList.add("selected");
+  points[position]
+    .classList.add("selected");
 
-  MOVES[index].forEach((destination) => {
 
-    if (board[destination] === null) {
+  connectedPositions[position]
+    .forEach((destination) => {
 
-      points[destination].classList.add(
-        "movable"
-      );
+      if (board[destination] === null) {
 
-    }
+        points[destination]
+          .classList.add("movable");
 
-  });
+      }
 
-  statusElement.textContent =
+    });
+
+
+  message.textContent =
     "Pilih titik kosong untuk memindahkan bidak.";
 
 }
 
 
 /*
-  PINDAHKAN BIDAK
+  MOVE PIECE
 */
 
 function movePiece(from, to) {
@@ -226,36 +259,41 @@ function movePiece(from, to) {
 
   board[from] = null;
 
-  selectedPiece = null;
+  selectedPosition = null;
 
-  clearHighlights();
+  clearSelection();
 
-  renderBoard();
+  render();
+
 
   const winner = checkWinner();
+
 
   if (winner) {
 
     finishGame(winner);
 
     return;
+
   }
 
-  switchPlayer();
+
+  changeTurn();
 
 }
 
 
 /*
-  GANTI PEMAIN
+  CHANGE TURN
 */
 
-function switchPlayer() {
+function changeTurn() {
 
   currentPlayer =
     currentPlayer === "red"
       ? "blue"
       : "red";
+
 
   updateTurn();
 
@@ -273,20 +311,25 @@ function updateTurn() {
       ? "Pemain 1"
       : "Pemain 2";
 
-  turnText.textContent = playerName;
 
-  playerOne.classList.toggle(
+  turnText.textContent =
+    playerName;
+
+
+  redPlayer.classList.toggle(
     "active",
     currentPlayer === "red"
   );
 
-  playerTwo.classList.toggle(
+
+  bluePlayer.classList.toggle(
     "active",
     currentPlayer === "blue"
   );
 
-  statusElement.textContent =
-    `Giliran ${playerName}. Pilih salah satu bidak.`;
+
+  message.textContent =
+    `Giliran ${playerName}. Pilih bidakmu.`;
 
 }
 
@@ -295,27 +338,29 @@ function updateTurn() {
   RENDER BOARD
 */
 
-function renderBoard() {
+function render() {
 
   points.forEach((point, index) => {
 
     point.innerHTML = "";
 
-    const piece = board[index];
 
-    if (!piece) {
+    if (!board[index]) {
       return;
     }
 
-    const pieceElement =
+
+    const piece =
       document.createElement("span");
 
-    pieceElement.classList.add(
+
+    piece.classList.add(
       "piece",
-      piece
+      board[index]
     );
 
-    point.appendChild(pieceElement);
+
+    point.appendChild(piece);
 
   });
 
@@ -323,46 +368,59 @@ function renderBoard() {
 
 
 /*
-  CEK PEMENANG
+  CHECK WINNER
 */
 
 function checkWinner() {
 
-  for (const line of WINNING_LINES) {
+  for (const line of winningLines) {
 
     const [a, b, c] = line;
 
+
     if (
-      board[a] &&
+
+      board[a] !== null &&
+
       board[a] === board[b] &&
+
       board[a] === board[c]
+
     ) {
 
-      const player = board[a];
+      const player =
+        board[a];
+
 
       /*
-        Posisi awal horizontal
-        tidak dihitung sebagai kemenangan.
+        Jangan anggap posisi awal
+        sebagai kemenangan.
       */
 
-      const isInitialLine =
-        INITIAL_LINES[player].every(
+      const isStartingPosition =
+        startingLines[player].every(
           (position) =>
             board[position] === player
         );
 
-      if (isInitialLine) {
+
+      if (isStartingPosition) {
         continue;
       }
 
+
       return {
-        player,
-        line
+
+        player: player,
+
+        line: line
+
       };
 
     }
 
   }
+
 
   return null;
 
@@ -370,22 +428,14 @@ function checkWinner() {
 
 
 /*
-  SELESAI
+  FINISH GAME
 */
 
 function finishGame(result) {
 
-  gameOver = true;
+  gameFinished = true;
 
-  clearHighlights();
-
-  result.line.forEach((index) => {
-
-    points[index].classList.add(
-      "selected"
-    );
-
-  });
+  clearSelection();
 
 
   if (result.player === "red") {
@@ -399,9 +449,12 @@ function finishGame(result) {
       "Pemain 1 Menang!";
 
     winnerPiece.className =
-      "red";
+      "winner-piece red";
 
-  } else {
+  }
+
+
+  if (result.player === "blue") {
 
     blueScore++;
 
@@ -412,117 +465,29 @@ function finishGame(result) {
       "Pemain 2 Menang!";
 
     winnerPiece.className =
-      "blue";
+      "winner-piece blue";
 
   }
 
 
-  winnerModal.classList.add(
-    "show"
-  );
+  result.line.forEach((position) => {
+
+    points[position]
+      .classList.add("selected");
+
+  });
+
+
+  modal.classList.add("show");
 
 }
 
 
 /*
-  RESET RONDE
+  CLEAR SELECTION
 */
 
-function resetGame() {
-
-  board = [
-    "red",
-    "red",
-    "red",
-
-    null,
-    null,
-    null,
-
-    "blue",
-    "blue",
-    "blue"
-  ];
-
-  currentPlayer = "red";
-
-  selectedPiece = null;
-
-  gameOver = false;
-
-  clearHighlights();
-
-  renderBoard();
-
-  updateTurn();
-
-}
-
-
-/*
-  RONDE BERIKUTNYA
-*/
-
-function startNextRound() {
-
-  round++;
-
-  roundNumberElement.textContent =
-    round;
-
-  winnerModal.classList.remove(
-    "show"
-  );
-
-  resetGame();
-
-}
-
-
-/*
-  RESET BUTTON
-*/
-
-resetButton.addEventListener(
-  "click",
-  () => {
-
-    round = 1;
-
-    roundNumberElement.textContent =
-      round;
-
-    redScore = 0;
-    blueScore = 0;
-
-    redScoreElement.textContent = "0";
-    blueScoreElement.textContent = "0";
-
-    winnerModal.classList.remove(
-      "show"
-    );
-
-    resetGame();
-
-  }
-);
-
-
-/*
-  NEXT ROUND
-*/
-
-nextRound.addEventListener(
-  "click",
-  startNextRound
-);
-
-
-/*
-  HAPUS HIGHLIGHT
-*/
-
-function clearHighlights() {
+function clearSelection() {
 
   points.forEach((point) => {
 
@@ -537,9 +502,101 @@ function clearHighlights() {
 
 
 /*
-  START
+  RESET GAME
 */
 
-renderBoard();
+function resetGame() {
+
+  board = [
+
+    "red",
+    "red",
+    "red",
+
+    null,
+    null,
+    null,
+
+    "blue",
+    "blue",
+    "blue"
+
+  ];
+
+
+  currentPlayer = "red";
+
+  selectedPosition = null;
+
+  gameFinished = false;
+
+
+  modal.classList.remove("show");
+
+
+  clearSelection();
+
+  render();
+
+  updateTurn();
+
+}
+
+
+/*
+  NEXT ROUND
+*/
+
+playAgain.addEventListener(
+  "click",
+  () => {
+
+    round++;
+
+    roundElement.textContent =
+      round;
+
+    resetGame();
+
+  }
+);
+
+
+/*
+  FULL RESET
+*/
+
+resetButton.addEventListener(
+  "click",
+  () => {
+
+    redScore = 0;
+
+    blueScore = 0;
+
+    round = 1;
+
+
+    redScoreElement.textContent =
+      "0";
+
+    blueScoreElement.textContent =
+      "0";
+
+    roundElement.textContent =
+      "1";
+
+
+    resetGame();
+
+  }
+);
+
+
+/*
+  START GAME
+*/
+
+render();
 
 updateTurn();
